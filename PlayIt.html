@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="en">
-  <head></head>
-  <body class="text-center">
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mood-Based Playlist Generator</title>
@@ -12,25 +11,150 @@
     />
     <style>
       body {
-        background-color: #343a40;
-        color: white;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        transition: background-color 0.3s, color 0.3s;
       }
 
-      .card {
-        background-color: #4b5157;
+      body.dark-theme {
+        background-color: #1a1a2e;
+        color: #e0e0e0;
       }
 
-      .spinner-border {
-        color: #ffffff;
+      body.light-theme {
+        background-color: #f0f0f0;
+        color: #333333;
+      }
+
+      .container {
+        max-width: 800px;
+      }
+
+      h1 {
+        font-weight: bold;
+        margin-bottom: 1.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .dark-theme h1 {
+        color: #4ecca3;
+      }
+
+      .light-theme h1 {
+        color: #2a9d8f;
+      }
+
+      .btn-group-vertical {
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+      }
+
+      .btn {
+        margin-bottom: 0.5rem;
+        border: none;
+        transition: all 0.3s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
       }
 
       .btn.active {
-        box-shadow: 0 0 10px 5px rgba(255, 255, 255, 0.5);
+        box-shadow: 0 0 15px 5px rgba(78, 204, 163, 0.5);
+      }
+
+      .card {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s ease, background-color 0.3s;
+      }
+
+      .dark-theme .card {
+        background-color: #16213e;
+      }
+
+      .light-theme .card {
+        background-color: #ffffff;
+      }
+
+      .card:hover {
+        transform: scale(1.02);
+      }
+
+      .card-body {
+        padding: 1.25rem;
+      }
+
+      .dark-theme .card-title {
+        color: #4ecca3;
+      }
+
+      .light-theme .card-title {
+        color: #2a9d8f;
+      }
+
+      .dark-theme .card-text {
+        color: #b2b2b2;
+      }
+
+      .light-theme .card-text {
+        color: #666666;
+      }
+
+      .spinner-border {
+        color: #4ecca3;
+      }
+
+      #shuffleButton {
+        font-weight: bold;
+      }
+
+      .dark-theme #shuffleButton {
+        background-color: #4ecca3;
+        color: #1a1a2e;
+      }
+
+      .light-theme #shuffleButton {
+        background-color: #2a9d8f;
+        color: #ffffff;
+      }
+
+      #themeToggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+      }
+
+      #themeIcon {
+        margin-right: 8px;
+      }
+
+      .dark-theme #themeToggle {
+        background-color: #4ecca3;
+        color: #1a1a2e;
+      }
+
+      .light-theme #themeToggle {
+        background-color: #2a9d8f;
+        color: #ffffff;
       }
     </style>
-
+  </head>
+  <body class="text-center dark-theme">
+    <button id="themeToggle" class="btn">
+      <span id="themeIcon">☀️</span>
+      <span id="themeText">Switch to light theme</span>
+    </button>
     <div class="container mt-5">
-      <h1>Select Your Mood</h1>
+      <h1 class="mb-4">Mood-Based Playlist Generator</h1>
       <div class="btn-group-vertical mt-3" id="moodButtons">
         <button class="btn btn-primary" data-mood="happy">😊 Happy</button>
         <button class="btn btn-secondary" data-mood="sad">😢 Sad</button>
@@ -38,11 +162,12 @@
         <button class="btn btn-danger" data-mood="energetic">⚡ Energetic</button>
         <button class="btn btn-warning" data-mood="calm">🧘 Calm</button>
       </div>
-      <div class="mt-4" id="playlist"></div>
+      <!-- Moved shuffle button here -->
       <button class="btn btn-info mt-3" id="shuffleButton" style="display: none">
-        Shuffle Playlist
+        🔀 Shuffle Playlist
       </button>
-      <div class="spinner-border" id="loading" style="display: none"></div>
+      <div class="spinner-border mt-3" id="loading" style="display: none"></div>
+      <div class="mt-4" id="playlist"></div>
     </div>
 
     <script>
@@ -89,6 +214,8 @@
                   </div>`;
               playlistContainer.appendChild(card);
           });
+          // Show the shuffle button after displaying the playlist
+          shuffleButton.style.display = 'inline-block';
       }
 
       moodButtons.forEach(button => {
@@ -102,7 +229,6 @@
                   currentPlaylist = await fetchPlaylistForMood(mood);
                   displayPlaylist(currentPlaylist);
                   loadingSpinner.style.display = 'none';
-                  shuffleButton.style.display = 'inline-block';
               } catch (error) {
                   loadingSpinner.style.display = 'none';
                   alert("Error fetching playlist: " + error.message);
@@ -124,6 +250,25 @@
           }
           return array;
       }
+
+      // Update the theme toggle code
+      const themeToggle = document.getElementById('themeToggle');
+      const themeIcon = document.getElementById('themeIcon');
+      const themeText = document.getElementById('themeText');
+      const body = document.body;
+
+      themeToggle.addEventListener('click', () => {
+        body.classList.toggle('dark-theme');
+        body.classList.toggle('light-theme');
+        
+        if (body.classList.contains('dark-theme')) {
+          themeIcon.textContent = '☀️';
+          themeText.textContent = 'Switch to light theme';
+        } else {
+          themeIcon.textContent = '🌙';
+          themeText.textContent = 'Switch to dark theme';
+        }
+      });
     </script>
   </body>
 </html>
